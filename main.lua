@@ -1,65 +1,73 @@
 function love.load()
     -- Initialize game state
     love.graphics.setBackgroundColor(0.1, 0.1, 0.2)
-    
-    -- Player position
-    player = {
+
+    -- Spaceship position and properties
+    SPACESHIP = {
         x = 400,
-        y = 300,
-        size = 30,
-        speed = 200
+        y = 500,
+        width = 20,
+        height = 30,
+        speed = 250,
+        angle = 0
     }
-    
-    -- Simple particle system
-    particles = {}
-    
+
+    -- Star field particles
+    STARS = {}
+
     -- Game title
-    title = "My LÖVE2D Game"
+    TITLE = "Space Explorer: Bas and Tim edition"
 end
 
 function love.update(dt)
-    -- Move player with arrow keys
+    -- Move spaceship with arrow keys
     if love.keyboard.isDown("left") or love.keyboard.isDown("a") then
-        player.x = player.x - player.speed * dt
+        SPACESHIP.x = SPACESHIP.x - SPACESHIP.speed * dt
+        SPACESHIP.angle = -0.2 -- Tilt left
+    elseif love.keyboard.isDown("right") or love.keyboard.isDown("d") then
+        SPACESHIP.x = SPACESHIP.x + SPACESHIP.speed * dt
+        SPACESHIP.angle = 0.2 -- Tilt right
+    else
+        SPACESHIP.angle = 0   -- Return to upright
     end
-    if love.keyboard.isDown("right") or love.keyboard.isDown("d") then
-        player.x = player.x + player.speed * dt
-    end
+
     if love.keyboard.isDown("up") or love.keyboard.isDown("w") then
-        player.y = player.y - player.speed * dt
+        SPACESHIP.y = SPACESHIP.y - SPACESHIP.speed * dt
     end
     if love.keyboard.isDown("down") or love.keyboard.isDown("s") then
-        player.y = player.y + player.speed * dt
+        SPACESHIP.y = SPACESHIP.y + SPACESHIP.speed * dt
     end
-    
-    -- Keep player on screen
+
+    -- Keep spaceship on screen
     local screenWidth = love.graphics.getWidth()
     local screenHeight = love.graphics.getHeight()
-    
-    if player.x < player.size/2 then player.x = player.size/2 end
-    if player.x > screenWidth - player.size/2 then player.x = screenWidth - player.size/2 end
-    if player.y < player.size/2 then player.y = player.size/2 end
-    if player.y > screenHeight - player.size/2 then player.y = screenHeight - player.size/2 end
-    
-    -- Add some floating particles
-    if math.random() < 0.1 then
-        table.insert(particles, {
+
+    if SPACESHIP.x < SPACESHIP.width / 2 then SPACESHIP.x = SPACESHIP.width / 2 end
+    if SPACESHIP.x > screenWidth - SPACESHIP.width / 2 then SPACESHIP.x = screenWidth - SPACESHIP.width / 2 end
+    if SPACESHIP.y < SPACESHIP.height / 2 then SPACESHIP.y = SPACESHIP.height / 2 end
+    if SPACESHIP.y > screenHeight - SPACESHIP.height / 2 then SPACESHIP.y = screenHeight - SPACESHIP.height / 2 end
+
+    -- Add twinkling stars
+    if math.random() < 0.3 then
+        table.insert(STARS, {
             x = math.random(love.graphics.getWidth()),
-            y = love.graphics.getHeight() + 10,
-            speed = math.random(50, 150),
-            size = math.random(3, 8),
-            life = 1.0
+            y = -5,
+            speed = math.random(30, 100),
+            size = math.random(1, 3),
+            brightness = math.random(),
+            twinkle = math.random() * math.pi * 2
         })
     end
-    
-    -- Update particles
-    for i = #particles, 1, -1 do
-        local p = particles[i]
-        p.y = p.y - p.speed * dt
-        p.life = p.life - dt * 0.5
-        
-        if p.life <= 0 or p.y < -10 then
-            table.remove(particles, i)
+
+    -- Update stars
+    for i = #STARS, 1, -1 do
+        local star = STARS[i]
+        star.y = star.y + star.speed * dt
+        star.twinkle = star.twinkle + dt * 3
+        star.brightness = 0.5 + 0.5 * math.sin(star.twinkle)
+
+        if star.y > love.graphics.getHeight() + 10 then
+            table.remove(STARS, i)
         end
     end
 end
@@ -67,24 +75,40 @@ end
 function love.draw()
     -- Draw title
     love.graphics.setColor(1, 1, 1)
-    love.graphics.print(title, 10, 10, 0, 2, 2)
-    
+    love.graphics.print(TITLE, 10, 10, 0, 2, 2)
+
     -- Draw instructions
-    love.graphics.print("Use WASD or arrow keys to move", 10, 50)
-    
-    -- Draw particles
-    for _, p in ipairs(particles) do
-        love.graphics.setColor(0.8, 0.9, 1, p.life)
-        love.graphics.circle("fill", p.x, p.y, p.size)
+    love.graphics.print("Use WASD or arrow keys to fly your spaceship", 10, 50)
+
+    -- Draw stars
+    for _, star in ipairs(STARS) do
+        love.graphics.setColor(1, 1, 1, star.brightness)
+        love.graphics.circle("fill", star.x, star.y, star.size)
     end
-    
-    -- Draw player as a circle
-    love.graphics.setColor(0.9, 0.3, 0.6)
-    love.graphics.circle("fill", player.x, player.y, player.size)
-    
-    -- Draw player outline
+
+    -- Draw spaceship as a triangle
+    love.graphics.push()
+    love.graphics.translate(SPACESHIP.x, SPACESHIP.y)
+    love.graphics.rotate(SPACESHIP.angle)
+
+    -- Spaceship body (triangle pointing up)
+    love.graphics.setColor(0.8, 0.8, 0.9)
+    local vertices = {
+        0, -SPACESHIP.height / 2,                   -- Top point
+        -SPACESHIP.width / 2, SPACESHIP.height / 2, -- Bottom left
+        SPACESHIP.width / 2, SPACESHIP.height / 2   -- Bottom right
+    }
+    love.graphics.polygon("fill", vertices)
+
+    -- Spaceship outline
     love.graphics.setColor(1, 1, 1)
-    love.graphics.circle("line", player.x, player.y, player.size)
+    love.graphics.polygon("line", vertices)
+
+    -- Engine glow
+    love.graphics.setColor(0.2, 0.5, 1, 0.8)
+    love.graphics.circle("fill", 0, SPACESHIP.height / 2 + 3, 4)
+
+    love.graphics.pop()
 end
 
 function love.keypressed(key)
