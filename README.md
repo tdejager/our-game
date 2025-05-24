@@ -1,4 +1,5 @@
-<img width="805" alt="image" src="https://github.com/user-attachments/assets/3aa2d51a-002d-46c6-9f64-b1b86f912622" />
+<img width="912" alt="image" src="https://github.com/user-attachments/assets/cc331dc7-c95c-4985-bef7-a25ebc1884ee" />
+
 
 
 # It's our game!
