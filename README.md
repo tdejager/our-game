@@ -1,4 +1,7 @@
-# My LÖVE2D Game
+<img width="805" alt="image" src="https://github.com/user-attachments/assets/3aa2d51a-002d-46c6-9f64-b1b86f912622" />
+
+
+# It's our game!
 
 A simple 2D game built with LÖVE2D (Lua game framework).
 
